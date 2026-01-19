@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>綠能宇宙 | 照片框</title>
+    <title>能源轉型互動遊趣味特效相框 | Energy Quiz</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -164,7 +164,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 10;
-            background-image: url('taiwan_buildings.png');
+            background-image: url('frames/taiwan_buildings.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -356,6 +356,49 @@
             font-family: 'Noto Sans TC', sans-serif;
         }
 
+        /* 相框切換按鈕 */
+        .frame-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .frame-nav-btn:hover {
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .frame-nav-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .frame-nav-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #2E7D32;
+        }
+
+        .frame-nav-prev {
+            left: -22px;
+        }
+
+        .frame-nav-next {
+            right: -22px;
+        }
+
         /* 響應式 */
         @media (max-height: 700px) {
             body {
@@ -381,33 +424,26 @@
     <!-- Logo -->
     <div class="logo-section">
         <div class="logo">
-            <div class="logo-icon">
-                <svg viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="15" fill="#2E7D32"/>
-                    <g fill="#2E7D32">
-                        <rect x="48" y="10" width="4" height="20" rx="2"/>
-                        <rect x="48" y="70" width="4" height="20" rx="2"/>
-                        <rect x="10" y="48" width="20" height="4" rx="2"/>
-                        <rect x="70" y="48" width="20" height="4" rx="2"/>
-                        <rect x="22" y="22" width="4" height="18" rx="2" transform="rotate(45 24 31)"/>
-                        <rect x="74" y="60" width="4" height="18" rx="2" transform="rotate(45 76 69)"/>
-                        <rect x="22" y="60" width="4" height="18" rx="2" transform="rotate(-45 24 69)"/>
-                        <rect x="74" y="22" width="4" height="18" rx="2" transform="rotate(-45 76 31)"/>
-                    </g>
-                </svg>
-            </div>
             <div class="logo-text">
-                綠能宇宙
-                <span>GREEN UNIVERSE</span>
+                能源轉型互動遊趣味特效相框
+                <span>Energy Quiz</span>
             </div>
         </div>
     </div>
 
     <!-- 標題 -->
-    <h1 class="title">Download and Share!</h1>
+    <h1 class="title">請選擇喜愛的相框模式</h1>
 
     <!-- 照片框 -->
     <div class="frame-container">
+        <!-- 左側切換按鈕 -->
+        <button class="frame-nav-btn frame-nav-prev" id="prevFrameBtn">
+            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+        <!-- 右側切換按鈕 -->
+        <button class="frame-nav-btn frame-nav-next" id="nextFrameBtn">
+            <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        </button>
         <div class="photo-frame" id="photoFrame">
             <div class="upload-prompt" id="uploadPrompt">
                 <svg viewBox="0 0 24 24">
@@ -471,6 +507,15 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // 可用的相框列表
+        const frameList = [
+            'frames/taiwan_buildings.png',
+            'frames/生態綠色城市.png',
+            'frames/氫能.png',
+            'frames/陸域風電.png'
+        ];
+        let currentFrameIndex = 0;
+
         // 狀態
         const state = {
             uploadedImage: null,
@@ -494,16 +539,40 @@
         const shareMenu = document.getElementById('shareMenu');
         const shareBackdrop = document.getElementById('shareBackdrop');
         const toast = document.getElementById('toast');
+        const prevFrameBtn = document.getElementById('prevFrameBtn');
+        const nextFrameBtn = document.getElementById('nextFrameBtn');
 
-        // 初始化 - 載入預設圖框
-        function initFrame() {
+        // 載入指定圖框
+        function loadFrame(frameSrc) {
             const img = new Image();
             img.onload = () => {
                 state.frameImage = img;
+                frameOverlay.style.backgroundImage = `url('${frameSrc}')`;
             };
-            img.src = 'taiwan_buildings.png';
+            img.src = frameSrc;
+        }
+
+        // 初始化 - 載入預設圖框
+        function initFrame() {
+            loadFrame(frameList[currentFrameIndex]);
         }
         initFrame();
+
+        // 切換到上一個相框
+        function prevFrame() {
+            currentFrameIndex = (currentFrameIndex - 1 + frameList.length) % frameList.length;
+            loadFrame(frameList[currentFrameIndex]);
+        }
+
+        // 切換到下一個相框
+        function nextFrame() {
+            currentFrameIndex = (currentFrameIndex + 1) % frameList.length;
+            loadFrame(frameList[currentFrameIndex]);
+        }
+
+        // 相框切換按鈕事件
+        prevFrameBtn.addEventListener('click', prevFrame);
+        nextFrameBtn.addEventListener('click', nextFrame);
 
         // 點擊上傳照片
         photoFrame.addEventListener('click', (e) => {
@@ -692,7 +761,7 @@
         document.getElementById('downloadOption').addEventListener('click', async () => {
             const dataUrl = await generateFinalImage();
             const link = document.createElement('a');
-            link.download = `綠能宇宙_${Date.now()}.png`;
+            link.download = `Energy_Quiz_${Date.now()}.png`;
             link.href = dataUrl;
             link.click();
             showToast('照片已下載！');
@@ -702,7 +771,7 @@
         // 社群分享
         async function shareToSocial(platform) {
             const dataUrl = await generateFinalImage();
-            const shareText = '我在綠能宇宙創建了專屬照片框！一起支持永續能源！ #綠能宇宙 #永續發展';
+            const shareText = '我在 Energy Quiz 創建了專屬照片框！一起支持能源轉型！ #EnergyQuiz #能源轉型';
             const shareUrl = window.location.href;
 
             // 嘗試 Web Share API
@@ -710,10 +779,10 @@
                 try {
                     const response = await fetch(dataUrl);
                     const blob = await response.blob();
-                    const file = new File([blob], 'green-universe.png', { type: 'image/png' });
+                    const file = new File([blob], 'energy-quiz.png', { type: 'image/png' });
 
                     await navigator.share({
-                        title: '綠能宇宙',
+                        title: 'Energy Quiz',
                         text: shareText,
                         files: [file]
                     });
