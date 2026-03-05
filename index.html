@@ -544,41 +544,49 @@
         const prevFrameBtn = document.getElementById('prevFrameBtn');
         const nextFrameBtn = document.getElementById('nextFrameBtn');
 
-        // 載入指定圖框
+        // 預載所有相框圖片
         const frameContainer = document.querySelector('.frame-container');
+        const frameImages = [];
 
-        function loadFrame(frameSrc) {
-            const img = new Image();
-            img.onload = () => {
-                state.frameImage = img;
-                frameOverlay.style.backgroundImage = `url('${frameSrc}')`;
-
-                // 動態更新容器比例與 canvas 尺寸
-                const ratio = img.width / img.height;
-                frameContainer.style.setProperty('--frame-ratio', `${img.width} / ${img.height}`);
-                state.canvasWidth = Math.round(800 * ratio);
-                state.canvasHeight = 800;
-                renderPreview();
-            };
-            img.src = frameSrc;
+        function preloadFrames() {
+            frameList.forEach((src, i) => {
+                const img = new Image();
+                img.src = src;
+                frameImages[i] = img;
+            });
+            // 第一張載入完成後立即顯示
+            frameImages[0].onload = () => applyFrame(0);
         }
 
-        // 初始化 - 載入預設圖框
-        function initFrame() {
-            loadFrame(frameList[currentFrameIndex]);
+        function applyFrame(index) {
+            const img = frameImages[index];
+            if (!img.complete) {
+                img.onload = () => applyFrame(index);
+                return;
+            }
+            state.frameImage = img;
+            frameOverlay.style.backgroundImage = `url('${frameList[index]}')`;
+
+            // 動態更新容器比例與 canvas 尺寸
+            const ratio = img.width / img.height;
+            frameContainer.style.setProperty('--frame-ratio', `${img.width} / ${img.height}`);
+            state.canvasWidth = Math.round(800 * ratio);
+            state.canvasHeight = 800;
+            renderPreview();
         }
-        initFrame();
+
+        preloadFrames();
 
         // 切換到上一個相框
         function prevFrame() {
             currentFrameIndex = (currentFrameIndex - 1 + frameList.length) % frameList.length;
-            loadFrame(frameList[currentFrameIndex]);
+            applyFrame(currentFrameIndex);
         }
 
         // 切換到下一個相框
         function nextFrame() {
             currentFrameIndex = (currentFrameIndex + 1) % frameList.length;
-            loadFrame(frameList[currentFrameIndex]);
+            applyFrame(currentFrameIndex);
         }
 
         // 相框切換按鈕事件
